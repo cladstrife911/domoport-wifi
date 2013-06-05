@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>EnOcean Nest Webserver</title>
+<link rel="shortcut icon" href="./images/logo_icon.ico" />
+<link href="style/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="scripts/mchp.js"></script>
+<script type="text/javascript" src="scripts/smoothie.js"></script>
+</head>
+
+<body onload="createTimeline()"> <!--onload required for the canvas-->
+<div id="content">
+	<div id="logo">
+		<a href="http://www.openpicus.com/"><img src="images/openpicus_logo.png" alt="Picus" /></a>
+		<a href="http://www.g-media.fr/"><img src="images/logo_giga-concept.png" alt="Picus" /></a>
+		<a href="http://www.enocean.com/"><img src="images/logo_EnOcean.png" alt="Picus" /></a>
+	</div>
+
+	<div id="status">
+		<div id="loading" style="display:none">Error:<br />Connection to Flyport control board was lost.</div>
+		<div id="display">
+			
+			<p>Outputs: <span id="info">(click to toggle)</span><br />
+				<table border="0"  width="430">
+				<tr>
+					<td><a id="led0" onclick="newAJAXCommand('leds.cgi?led=0');" align><img id="btIO" src="images/o.png" /></a></td>
+					<td><span id="info">Pressing this button will send an RPS Telegramm (EnOcean EEP: F6) in broadcast mode. You can "teach-in" this button with a switch (like EnOcean RCM250).</span></td>
+				</tr>
+				</table>
+			</p>
+		</div>
+	</div>	
+	
+	<div id="status">	
+			<p>Inputs: <span id="info">(need to learn before)</span><br />
+			<p>Temperature (°C): <span id="pot0" style="font-weight:normal">?</span><br/></p>
+			<canvas id="chart" width="460"></canvas>
+	</div>
+		
+	<div id="status">		
+			<p>Learn and Clear: <span id="info">(teach-in sequence)</span></p>
+			<table border="0"  width="430">
+				<tr>
+					<td><button type="button" onclick="newAJAXCommand('buttons.cgi?btn=1');">Learn</button></td>
+					<td style="vertical-align:center;">Learning</td>
+					<td><img id="lrn0" src="images/learn_off.png" /></td>
+					<td id="info">Press "Learn" to enter "teach-in" mode. Press "Learn" button on an EnOcean Temperature sensor (EEP: A5-02-05) to end "teach-in" mode.</td>
+				</tr>
+				<tr>
+					<td><button type="button" onclick="newAJAXCommand('buttons.cgi?btn=2');">Clear</button></td>
+					<td style="vertical-align:center;">Learned</td>
+					<td><img id="lrn1" src="images/learn_off.png" /></td>
+					<td id="info">Press "Clear" to exit "teach-in" mode or to remove the learned EnOcean Temperature sensor.</td>
+				</tr>
+				
+			</table>
+	</div>
+		
+	<div id="footer">
+		<a href="http://www.openpicus.com/" title="Validate">Powered by openPICUS technology</a>
+		<a style="float:right" href="http://www.g-media.fr/developpeurs/openpicus.html" title="Validate">Buy Online</a>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+<!--
+//Smoothie code:
+// Randomly add a data point every 500ms
+var random = new TimeSeries();
+var analog1chart = new TimeSeries();
+//setInterval(function() {
+//random.append(new Date().getTime(), Math.random() * 10000);
+//}, 500);
+
+function createTimeline() {
+var chart = new SmoothieChart();
+chart.addTimeSeries(analog1chart, { strokeStyle: 'rgba(0, 255, 0, 1)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 4 });
+chart.streamTo(document.getElementById("chart"), 1000);
+}
+
+
+<!--
+// Parses the xmlResponse from status.xml and updates the status box
+function updateStatus(xmlData) {
+	var mainstat = document.getElementById('display').style.display;
+	var loadstat = document.getElementById('loading').style.display;
+
+	// Check if a timeout occurred
+	if(!xmlData)
+	{
+		mainstat = 'none';
+		loadstat = 'inline';	
+
+		return;
+	}
+
+	// Make sure we're displaying the status display
+	mainstat = 'inline';
+	loadstat = 'none';
+
+	//change the image of the button
+	document.getElementById('btIO').src = (getXMLValue(xmlData, 'led0') == '1') ? 'images/i.png' : 'images/o.png';
+	
+	document.getElementById('lrn0').src = (getXMLValue(xmlData, 'lrn0') == '1') ?  'images/learn_on.png' : 'images/learn_off.png';
+	document.getElementById('lrn1').src = (getXMLValue(xmlData, 'lrn1') == '1') ? 'images/learn_on.png' : 'images/learn_off.png';
+
+	document.getElementById('pot0').innerHTML = getXMLValue(xmlData, 'pot0');
+	analog1chart.append(new Date().getTime(), getXMLValue(xmlData, 'pot0'));
+		
+		
+}
+setTimeout("newAJAXCommand('status.xml', updateStatus, true)",500);
+//-->
+</script>
+</body>
+</html>
